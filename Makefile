@@ -16,5 +16,8 @@ build: ## Build docker image
 push: ## Push docker image to DockerHub
 	@docker push $(IMAGE_NAME):$(IMAGE_TAG)
 
+run: ## Run docker container
+	@docker run -dt -p 8000:8000 $(IMAGE_NAME):$(IMAGE_TAG)
+
 help: ## Show this help
 	@awk 'BEGIN {FS = ":.*?## "} /^[a-zA-Z_-]+:.*?## / {printf "\033[38;2;98;209;150m%-15s\033[0m %s\n", $$1, $$2}' $(MAKEFILE_LIST)
