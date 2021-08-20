@@ -10,6 +10,9 @@ dev: ## Run API server for debug
 test: ## Test API
 	@curl -X POST -H "Content-Type: application/json" -d @request.json http://localhost:8000/image-policy/base-image
 
+test-ssl: ## Test API (SSL)
+	@curl -k -X POST -H "Content-Type: application/json" -d @request.json https://localhost/image-policy/base-image
+
 build: ## Build docker image
 	@docker build -t $(IMAGE_NAME):$(IMAGE_TAG) .
 
