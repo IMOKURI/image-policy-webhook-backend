@@ -36,12 +36,12 @@ test-fail: ## Test API (Failed)
 		http://localhost:8000/image-policy/base-image
 
 svc_ip = $(shell kubectl get service -n image-policy image-policy-svc -o json | jq -r '.status.loadBalancer.ingress[0].ip')
-test-service: ## Test API (Kubernetes Service)
+test-k8s: ## Test API (Kubernetes Service)
 	@curl -X POST -H "Content-Type: application/json" -d @request_good.json \
 		--key /certs/apiserver.key --cert /certs/apiserver.crt \
 		https://ic.lab.imokuri123.com/image-policy/base-image
 
-test-service-fail: ## Test API (Kubernetes Service)
+test-k8s-fail: ## Test API (Kubernetes Service)
 	@curl -X POST -H "Content-Type: application/json" -d @request_bad.json \
 		--key /certs/apiserver.key --cert /certs/apiserver.crt \
 		https://ic.lab.imokuri123.com/image-policy/base-image
@@ -56,9 +56,14 @@ run: ## Run docker container
 	@docker run -dt -p 10443:10443 $(IMAGE_NAME):$(IMAGE_TAG)
 
 secret: ## Create secret
+	@kubectl create namespace image-policy
 	@sed "s/SERVER_CRT/$(shell cat image-policy.crt | base64 -w0)/g" secret.yaml | \
 		sed "s/SERVER_KEY/$(shell cat image-policy.key | base64 -w0)/g" | \
 		kubectl apply -f -
+
+update-ca: ## Update CA
+	@sudo cp image-policy.crt /usr/local/share/ca-certificates/
+	@sudo update-ca-certificates
 
 up-certs: ## Upload certificates
 	@docker exec kind-control-plane mkdir -p /etc/kubernetes/admission-control
