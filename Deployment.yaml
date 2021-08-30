@@ -1,0 +1,54 @@
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: image-policy
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: image-policy
+  namespace: image-policy
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: image-policy
+  template:
+    metadata:
+      labels:
+        app: image-policy
+    spec:
+      containers:
+      - name: image-policy
+        image: imokuri123/image-policy-webhook-backend
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 10443
+        volumeMounts:
+        - mountPath: /certs
+          name: k8s-certs
+          readOnly: true
+      volumes:
+      - hostPath:
+          path: /etc/kubernetes/pki
+          type: DirectoryOrCreate
+        name: k8s-certs
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: image-policy-svc
+  namespace: image-policy
+spec:
+  # type: NodePort
+  type: LoadBalancer
+  ports:
+  - port: 443
+    targetPort: 10443
+    protocol: TCP
+    name: http
+  selector:
+    app: image-policy
