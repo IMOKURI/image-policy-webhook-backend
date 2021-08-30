@@ -10,33 +10,41 @@ setup: ## Create kind cluster
 teardown: ## Delete kind cluster
 	@kind delete cluster
 
+helm-repo: ## Setup helm helm-repo
+	@helm repo add metallb https://metallb.github.io/metallb
+	@helm repo add nginx-stable https://helm.nginx.com/stable
+	@helm repo update
+
 metallb: ## Install metallb
 	@kubectl create namespace metallb-system
 	@helm install metallb metallb/metallb -n metallb-system -f metallb-values.yaml
+
+nginx: ## Install nginx
+	@kubectl create namespace nginx-system
+	@helm install nginx nginx-stable/nginx-ingress -n nginx-system
+	@kubectl patch ingressclass nginx -p '{"metadata": {"annotations":{"ingressclass.kubernetes.io/is-default-class":"true"}}}'
 
 dev: ## Run API server for debug
 	@python app.py
 
 test: ## Test API (Passed)
-	@curl -k -X POST -H "Content-Type: application/json" -d @request_good.json \
-		https://localhost:10443/image-policy/base-image
+	@curl -X POST -H "Content-Type: application/json" -d @request_good.json \
+		http://localhost:8000/image-policy/base-image
 
 test-fail: ## Test API (Failed)
-	@curl -k -X POST -H "Content-Type: application/json" -d @request_bad.json \
-		https://localhost:10443/image-policy/base-image
+	@curl -X POST -H "Content-Type: application/json" -d @request_bad.json \
+		http://localhost:8000/image-policy/base-image
 
 svc_ip = $(shell kubectl get service -n image-policy image-policy-svc -o json | jq -r '.status.loadBalancer.ingress[0].ip')
 test-service: ## Test API (Kubernetes Service)
 	@curl -X POST -H "Content-Type: application/json" -d @request_good.json \
 		--key /certs/apiserver.key --cert /certs/apiserver.crt \
-		--resolve image-policy-svc.image-policy.svc.cluster.local:443:$(svc_ip) \
-		https://image-policy-svc.image-policy.svc.cluster.local/image-policy/base-image
+		https://ic.lab.imokuri123.com/image-policy/base-image
 
 test-service-fail: ## Test API (Kubernetes Service)
 	@curl -X POST -H "Content-Type: application/json" -d @request_bad.json \
 		--key /certs/apiserver.key --cert /certs/apiserver.crt \
-		--resolve image-policy-svc.image-policy.svc.cluster.local:443:$(svc_ip) \
-		https://image-policy-svc.image-policy.svc.cluster.local/image-policy/base-image
+		https://ic.lab.imokuri123.com/image-policy/base-image
 
 build: ## Build docker image
 	@docker build -t $(IMAGE_NAME):$(IMAGE_TAG) .
@@ -46,6 +54,11 @@ push: ## Push docker image to DockerHub
 
 run: ## Run docker container
 	@docker run -dt -p 10443:10443 $(IMAGE_NAME):$(IMAGE_TAG)
+
+secret: ## Create secret
+	@sed "s/SERVER_CRT/$(shell cat image-policy.crt | base64 -w0)/g" secret.yaml | \
+		sed "s/SERVER_KEY/$(shell cat image-policy.key | base64 -w0)/g" | \
+		kubectl apply -f -
 
 up-certs: ## Upload certificates
 	@docker exec kind-control-plane mkdir -p /etc/kubernetes/admission-control

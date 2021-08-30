@@ -25,7 +25,7 @@ spec:
         image: imokuri123/image-policy-webhook-backend
         imagePullPolicy: Always
         ports:
-        - containerPort: 10443
+        - containerPort: 8000
         volumeMounts:
         - mountPath: /certs
           name: k8s-certs
@@ -46,9 +46,33 @@ spec:
   # type: NodePort
   type: LoadBalancer
   ports:
-  - port: 443
-    targetPort: 10443
+  - port: 80
+    targetPort: 8000
     protocol: TCP
     name: http
   selector:
     app: image-policy
+
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: image-policy
+  namespace: image-policy
+spec:
+  # ingressClassName: nginx
+  tls:
+    - hosts:
+      - ic.lab.imokuri123.com
+      secretName: image-policy-tls
+  rules:
+  - host: ic.lab.imokuri123.com
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: image-policy-svc
+            port:
+              number: 80

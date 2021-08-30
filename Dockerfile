@@ -8,6 +8,6 @@ VOLUME /certs
 COPY . /app
 WORKDIR /app
 
-EXPOSE 10443/TCP
+EXPOSE 8000/TCP
 
 CMD ["python", "app.py"]
