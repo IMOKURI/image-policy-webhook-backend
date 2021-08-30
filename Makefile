@@ -12,7 +12,7 @@ teardown: ## Delete kind cluster
 
 helm-repo: ## Setup helm repositories
 	@helm repo add metallb https://metallb.github.io/metallb
-	@helm repo add nginx-stable https://helm.nginx.com/stable
+	@helm repo add ingress-nginx https://kubernetes.github.io/ingress-nginx
 	@helm repo update
 
 metallb: ## Install metallb
@@ -21,7 +21,7 @@ metallb: ## Install metallb
 
 nginx: ## Install nginx
 	@kubectl create namespace nginx-system
-	@helm install nginx nginx-stable/nginx-ingress -n nginx-system
+	@helm install nginx ingress-nginx/ingress-nginx -n nginx-system
 	@kubectl patch ingressclass nginx -p '{"metadata": {"annotations":{"ingressclass.kubernetes.io/is-default-class":"true"}}}'
 
 dev: ## Run API server for debug
