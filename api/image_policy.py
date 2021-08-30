@@ -43,4 +43,4 @@ class Image:
 
     def check_to_allow_base_image(self, image_tag):
         # TODO
-        return True
+        return image_tag.startswith("imokuri")

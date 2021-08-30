@@ -1,13 +1,10 @@
-{  
+{
   "apiVersion":"imagepolicy.k8s.io/v1alpha1",
   "kind":"ImageReview",
-  "spec":{  
-    "containers":[  
-      {  
-        "image":"myrepo/myimage:v1"
-      },
-      {  
-        "image":"theirrepo/myimage@sha256:beb6bd6a68f114c1dc2ea4b28db81bdf91de202a9014972bec5e4d9171d90ed"
+  "spec":{
+    "containers":[
+      {
+        "image":"imokuri123/myimage:v1"
       }
     ],
     "annotations":{

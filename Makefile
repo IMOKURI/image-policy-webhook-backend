@@ -4,11 +4,20 @@
 IMAGE_NAME := "imokuri123/image-policy-webhook-backend"
 IMAGE_TAG := "latest"
 
+setup: ## Create kind cluster
+	@kind create cluster
+
+teardown: ## Delete kind cluster
+	@kind delete cluster
+
 dev: ## Run API server for debug
 	@python app.py
 
-test: ## Test API
-	@curl -X POST -H "Content-Type: application/json" -d @request.json http://localhost:8000/image-policy/base-image
+test_fail: ## Test API (Failed)
+	@curl -X POST -H "Content-Type: application/json" -d @request_bad.json http://localhost:8000/image-policy/base-image
+
+test_pass: ## Test API (Passed)
+	@curl -X POST -H "Content-Type: application/json" -d @request_good.json http://localhost:8000/image-policy/base-image
 
 test-ssl: ## Test API (SSL)
 	@curl -k -X POST -H "Content-Type: application/json" -d @request.json https://localhost/image-policy/base-image
