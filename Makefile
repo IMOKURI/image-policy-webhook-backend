@@ -5,12 +5,12 @@ IMAGE_NAME := "imokuri123/image-policy-webhook-backend"
 IMAGE_TAG := "latest"
 
 setup: ## Create kind cluster
-	@kind create cluster
+	@kind create cluster --config kind.yaml
 
 teardown: ## Delete kind cluster
 	@kind delete cluster
 
-helm-repo: ## Setup helm helm-repo
+helm-repo: ## Setup helm repositories
 	@helm repo add metallb https://metallb.github.io/metallb
 	@helm repo add nginx-stable https://helm.nginx.com/stable
 	@helm repo update
