@@ -1,0 +1,9 @@
+{
+  "imagePolicy": {
+    "kubeConfigFile": "/etc/kubernetes/admission-control/image-policy-webhook.conf",
+    "allowTTL": 30,
+    "denyTTL": 30,
+    "retryBackoff": 500,
+    "defaultAllow": true
+  }
+}

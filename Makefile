@@ -47,5 +47,23 @@ push: ## Push docker image to DockerHub
 run: ## Run docker container
 	@docker run -dt -p 10443:10443 $(IMAGE_NAME):$(IMAGE_TAG)
 
+up-certs: ## Upload certificates
+	@docker exec kind-control-plane mkdir -p /etc/kubernetes/admission-control
+	@docker cp ./admission-configuration.yaml kind-control-plane:/etc/kubernetes/admission-control/
+	@docker cp ./image-policy-webhook.conf kind-control-plane:/etc/kubernetes/admission-control/
+	@docker cp ./image-policy-webhook.json kind-control-plane:/etc/kubernetes/admission-control/
+	@docker exec kind-control-plane chown root:root /etc/kubernetes/admission-control/admission-configuration.yaml
+	@docker exec kind-control-plane chown root:root /etc/kubernetes/admission-control/image-policy-webhook.conf
+	@docker exec kind-control-plane chown root:root /etc/kubernetes/admission-control/image-policy-webhook.json
+	@docker cp ./image-policy.crt kind-control-plane:/etc/kubernetes/pki/
+	@docker cp ./image-policy.key kind-control-plane:/etc/kubernetes/pki/
+	@docker exec kind-control-plane chown root:root /etc/kubernetes/pki/image-policy.crt
+	@docker exec kind-control-plane chown root:root /etc/kubernetes/pki/image-policy.key
+
+get-certs:  ## Download certificates
+	@docker cp kind-control-plane:/etc/kubernetes/pki/apiserver.crt .
+	@docker cp kind-control-plane:/etc/kubernetes/pki/apiserver.key .
+	@sudo mv apiserver.crt apiserver.key /certs/
+
 help: ## Show this help
 	@awk 'BEGIN {FS = ":.*?## "} /^[a-zA-Z_-]+:.*?## / {printf "\033[38;2;98;209;150m%-15s\033[0m %s\n", $$1, $$2}' $(MAKEFILE_LIST)

@@ -12,35 +12,42 @@ def index():
 
 @BP.route("/base-image", methods=["POST"])
 def base_image():
-    response = {
-        "apiVersion": "imagepolicy.k8s.io/v1alpha1",
-        "kind": "ImageReview",
-        "status": {"allowed": True},
-    }
     data = json.loads(request.get_data())
 
-    if data["kind"] != "ImageReview":
-        response["status"]["allowed"] = False
-        response["status"]["reason"] = f"Invalid request. kind: {data['kind']}"
-        return jsonify(response), 400
+    image = Image(data)
+    image.check_schema()
+    image.check_registry()
 
-    image = Image()
-
-    for container in data["spec"]["containers"]:
-        if not image.check_to_allow_base_image(container["image"]):
-            response["status"]["allowed"] = False
-            response["status"]["reason"] = f"Invalid base image. image: {container['image']}"
-            return jsonify(response), 403
-
-
-
-    return jsonify(response)
+    return jsonify(image.response), image.return_code
 
 
 class Image:
-    def __init__(self):
-        pass
+    def __init__(self, data):
+        self.data = data
+        self.response = {
+            "apiVersion": "imagepolicy.k8s.io/v1alpha1",
+            "kind": "ImageReview",
+            "status": {"allowed": True},
+        }
+        self.return_code = 200
 
-    def check_to_allow_base_image(self, image_tag):
+    def check_schema(self):
+        if self.data["kind"] != "ImageReview":
+            self.response["status"]["allowed"] = False
+            self.response["status"][
+                "reason"
+            ] = f"Invalid request. kind: {self.data['kind']}"
+            self.return_code = 400
+
+    def check_registry(self):
+        for container in self.data["spec"]["containers"]:
+            if not container["image"].startswith("imokuri"):
+                self.response["status"]["allowed"] = False
+                self.response["status"][
+                    "reason"
+                ] = f"Invalid base image. image: {container['image']}"
+                self.return_code = 403
+
+    def check_base_image(self):
         # TODO
-        return image_tag.startswith("imokuri")
+        pass
