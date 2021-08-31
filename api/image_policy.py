@@ -69,7 +69,6 @@ class Image:
                 self.response["status"][
                     "reason"
                 ] = f"Invalid base image. image: {container['image']}"
-                self.return_code = 403
                 return True
         return False
 
