@@ -26,6 +26,8 @@ class Image:
     VALID_REGISTRIES = [
         "imokuri123/",
         "gcr.k8s.io/",
+        "docker.io/",
+        "quay.io/",
     ]
 
     def __init__(self, data):
