@@ -53,16 +53,17 @@ push: ## Push docker image to DockerHub
 	@docker push $(IMAGE_NAME):$(IMAGE_TAG)
 
 run: ## Run docker container
-	@docker run -dt -p 10443:10443 $(IMAGE_NAME):$(IMAGE_TAG)
+	@docker run -dt -p 8000:8000 $(IMAGE_NAME):$(IMAGE_TAG)
 
-secret: ## Create secret
+backend: ## Deploy backend
 	@kubectl create namespace image-policy
 	@sed "s/SERVER_CRT/$(shell cat image-policy.crt | base64 -w0)/g" secret.yaml | \
 		sed "s/SERVER_KEY/$(shell cat image-policy.key | base64 -w0)/g" | \
 		kubectl apply -f -
+	@kubectl apply -f ./Deployment.yaml
 
 update-ca: ## Update CA
-	@sudo cp image-policy.crt /usr/local/share/ca-certificates/
+	@sudo cp -f image-policy.crt /usr/local/share/ca-certificates/
 	@sudo update-ca-certificates
 
 up-certs: ## Upload certificates

@@ -3,4 +3,3 @@ kind: AdmissionConfiguration
 plugins:
 - name: ImagePolicyWebhook
   path: /etc/kubernetes/admission-control/image-policy-webhook.json
-

@@ -4,6 +4,6 @@
     "allowTTL": 30,
     "denyTTL": 30,
     "retryBackoff": 500,
-    "defaultAllow": true
+    "defaultAllow": false
   }
 }

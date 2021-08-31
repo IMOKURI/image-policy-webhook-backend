@@ -1,4 +1,5 @@
 import json
+import os
 
 from flask import Blueprint, jsonify, request
 
@@ -15,13 +16,18 @@ def base_image():
     data = json.loads(request.get_data())
 
     image = Image(data)
-    image.check_schema()
-    image.check_registry()
+
+    image.check()
 
     return jsonify(image.response), image.return_code
 
 
 class Image:
+    VALID_REGISTRIES = [
+        "imokuri123/",
+        "gcr.k8s.io/",
+    ]
+
     def __init__(self, data):
         self.data = data
         self.response = {
@@ -31,22 +37,35 @@ class Image:
         }
         self.return_code = 200
 
-    def check_schema(self):
+    def check(self):
+        if self.is_invalid_schema():
+            return
+        if self.is_invalid_registry():
+            return
+
+    def is_invalid_schema(self):
         if self.data["kind"] != "ImageReview":
             self.response["status"]["allowed"] = False
             self.response["status"][
                 "reason"
             ] = f"Invalid request. kind: {self.data['kind']}"
             self.return_code = 400
+            return True
+        return False
 
-    def check_registry(self):
+    def is_invalid_registry(self):
         for container in self.data["spec"]["containers"]:
-            if not container["image"].startswith("imokuri"):
+            if all(
+                not container["image"].startswith(registry)
+                for registry in self.VALID_REGISTRIES
+            ):
                 self.response["status"]["allowed"] = False
                 self.response["status"][
                     "reason"
                 ] = f"Invalid base image. image: {container['image']}"
                 self.return_code = 403
+                return True
+        return False
 
     def check_base_image(self):
         # TODO
