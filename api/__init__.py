@@ -1,6 +1,9 @@
+import logging
+
 from flask import Flask, jsonify
 
 APP = Flask(__name__)
+APP.logger.setLevel(logging.INFO)
 
 
 from api import image_policy

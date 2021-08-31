@@ -1,7 +1,8 @@
 import json
+import logging
 import os
 
-from flask import Blueprint, jsonify, request
+from flask import Blueprint, jsonify, request, current_app
 
 BP = Blueprint("image_policy", __name__, url_prefix="/image-policy")
 
@@ -13,12 +14,15 @@ def index():
 
 @BP.route("/base-image", methods=["POST"])
 def base_image():
+    logger = current_app.logger
     data = json.loads(request.get_data())
+    logger.info(f"Request: {data}")
 
     image = Image(data)
 
     image.check()
 
+    logger.info(f"Response: {image.response}")
     return jsonify(image.response), image.return_code
 
 
